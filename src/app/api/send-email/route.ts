@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 
 export async function POST(req: Request) {
   try {
@@ -16,43 +15,66 @@ export async function POST(req: Request) {
       );
     }
 
-    let attachments = [];
+    // ===========================
+    //  TRATAR ANEXO (BASE64)
+    // ===========================
+    let attachments: any[] = [];
 
     if (file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      const buffer = Buffer.from(await file.arrayBuffer());
 
       attachments.push({
-        filename: file.name,
-        content: buffer,
+        name: file.name,
+        content: buffer.toString("base64"),
+        mime_type: file.type || "application/octet-stream",
       });
     }
 
-    const transport = nodemailer.createTransport({
-      host: process.env.ZEPTO_HOST,
-      port: Number(process.env.ZEPTO_PORT),
-      auth: {
-        user: process.env.ZEPTO_USER,
-        pass: process.env.ZEPTO_PASS
-      }
-    });
-
-    var mailOptions = {
-      from: process.env.DEFAULT_FROM,
-      to,
+    // ===========================
+    //  PAYLOAD DA ZEPTOMAIL
+    // ===========================
+    const payload: any = {
+      from: {
+        address: "sac@kicard.com.br",
+        name: "Sac kicard",
+      },
+      to: [
+        {
+          email_address: {
+            address: to,
+            name: to,
+          },
+        },
+      ],
       subject,
-      text,
-      attachments
+      htmlbody: text,
     };
 
-    transport.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return console.log(error);
-      }
-      console.log('Successfully sent');
+    if (attachments.length > 0) {
+      payload.attachments = attachments;
+    }
+
+    // ===========================
+    //  CHAMADA À API
+    // ===========================
+    const response = await fetch("https://api.zeptomail.com/v1.1/email", {
+      method: "POST",
+      headers: {
+        "Authorization": process.env.ZEPTO_TOKEN!, // coloque no .env
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
-    return NextResponse.json({ ok: true });
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Erro Zepto:", data);
+      return NextResponse.json({ error: data }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, data });
   } catch (error: any) {
     console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });
