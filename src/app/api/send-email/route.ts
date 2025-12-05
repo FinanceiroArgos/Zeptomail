@@ -35,8 +35,8 @@ export async function POST(req: Request) {
     // ===========================
     const payload: any = {
       from: {
-        address: "sac@kicard.com.br",
-        name: "Sac kicard",
+        address: "naoresponda@kicard.com.br",
+        name: "Kicard",
       },
       to: [
         {
