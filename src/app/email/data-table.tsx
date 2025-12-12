@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -50,7 +51,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="flex items-center pb-4">
+      <div className="flex items-center justify-between gap-4 pb-4">
         <Input
           placeholder="Email"
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
@@ -59,7 +60,21 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
+
+        <Select onValueChange={(e) => table.getColumn('status')?.setFilterValue(`${e === 'todos' ? '' : e}`)}>
+          <SelectTrigger className="w-full max-w-36 cursor-pointer">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="todos" >Todos</SelectItem>
+            <SelectItem value="enviado" >Enviado</SelectItem>
+            <SelectItem value="erro" >Não enviado</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+
 
       <div className="overflow-hidden rounded-md border">
         <Table>

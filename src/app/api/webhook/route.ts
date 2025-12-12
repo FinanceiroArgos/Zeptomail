@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { revalidateTag } from "next/cache";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const request_id = body.event_message[0].request_id
+
+    process.env.ZEPTO_TOKEN
 
     // Verificar se recebeu o request_id
     if (!request_id) return new Response("Faltando request_id", { status: 400 });
